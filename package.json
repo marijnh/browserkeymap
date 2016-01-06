@@ -3,9 +3,6 @@
   "version": "0.1.0",
   "description": "Map browser events to key names, and key names to values",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/marijnh/browserkeymap.git"
