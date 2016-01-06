@@ -1,0 +1,25 @@
+{
+  "name": "browserkeymap",
+  "version": "0.1.0",
+  "description": "Map browser events to key names, and key names to values",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marijnh/browserkeymap.git"
+  },
+  "keywords": [
+    "browser",
+    "key",
+    "event",
+    "keymap"
+  ],
+  "author": "Marijn Haverbeke <marijnh@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/marijnh/browserkeymap/issues"
+  },
+  "homepage": "https://github.com/marijnh/browserkeymap#readme"
+}
