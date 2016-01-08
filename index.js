@@ -77,7 +77,7 @@
       if (/^(cmd|meta|m)$/i.test(mod)) cmd = true
       else if (/^a(lt)?$/i.test(mod)) alt = true
       else if (/^(c|ctrl|control)$/i.test(mod)) ctrl = true
-      else if (/^s(hift)$/i.test(mod)) shift = true
+      else if (/^s(hift)?$/i.test(mod)) shift = true
       else if (/^mod$/i.test(mod)) { if (mac) cmd = true; else ctrl = true }
       else throw new Error("Unrecognized modifier name: " + mod)
     }
