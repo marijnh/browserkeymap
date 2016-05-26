@@ -165,6 +165,12 @@
       return this.options.call ? this.options.call(key, context) : this.bindings[key]
     },
 
+    // :: (any) → ?string
+    reverseLookup: function(value) {
+      for (let keyname in this.bindings)
+        if (this.bindings[keyname] == value) return keyname
+    },
+
     constructor: Keymap
   }
 
