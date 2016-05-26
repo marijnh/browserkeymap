@@ -55,6 +55,7 @@ to look up a key:
 You can add and remove bindings on an existing keymap.
 
     myMap.addBinding("Alt-F4", handleQuit)
+    myMap.addBindings({"Enter": something, "Esc": something})
     myMap.removeBinding("Shift-Space")
 
 So far, this doesn't do anything that a JavaScript object couldn't do.

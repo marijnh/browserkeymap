@@ -107,8 +107,7 @@
   function Keymap(keys, options) {
     this.options = options || {}
     this.bindings = Object.create(null)
-    if (keys) for (var keyname in keys) if (Object.prototype.hasOwnProperty.call(keys, keyname))
-      this.addBinding(keyname, keys[keyname])
+    if (keys) this.addBindings(keys)
   }
 
   Keymap.prototype = {
@@ -127,6 +126,13 @@
         if (!prev) this.bindings[name] = val
         else if (prev != val) throw new Error("Inconsistent bindings for " + name)
       }
+    },
+
+    // :: (Object<any>)
+    // Add all the bindings in the given object to the keymap.
+    addBindings: function(bindings) {
+      for (var keyname in bindings) if (Object.prototype.hasOwnProperty.call(bindings, keyname))
+        this.addBinding(keyname, bindings[keyname])
     },
 
     // :: (string)
