@@ -167,7 +167,7 @@
 
     // :: (any) → ?string
     reverseLookup: function(value) {
-      for (let keyname in this.bindings)
+      for (var keyname in this.bindings)
         if (this.bindings[keyname] == value) return keyname
     },
 
