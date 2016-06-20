@@ -88,95 +88,86 @@
     return result
   }
 
-  // :: (Object, ?Object)
-  // A keymap binds a set of [key names](#keyName) to commands names
-  // or functions.
-  //
-  // Construct a keymap using the bindings in `keys`, whose properties
-  // should be [key names](#keyName) or space-separated sequences of
-  // key names. In the second case, the binding will be for a
-  // multi-stroke key combination.
-  //
-  // When `options` has a property `call`, this will be a programmatic
-  // keymap, meaning that instead of looking keys up in its set of
-  // bindings, it will pass the key name to `options.call`, and use
-  // the return value of that calls as the resolved binding.
-  //
-  // `options.name` can be used to give the keymap a name, making it
-  // easier to [remove](#ProseMirror.removeKeymap) from an editor.
-  function Keymap(keys, options) {
-    this.options = options || {}
-    this.bindings = Object.create(null)
-    if (keys) this.addBindings(keys)
+  function hasProp(obj, prop) {
+    return Object.prototype.hasOwnProperty.call(obj, prop)
   }
 
-  Keymap.prototype = {
-    normalize: function(name) {
-      return this.options.multi !== false ? name.split(/ +(?!\'$)/).map(normalizeKeyName) : [normalizeKeyName(name)]
-    },
-
-    // :: (string, any)
-    // Add a binding for the given key or key sequence.
-    addBinding: function(keyname, value) {
-      var keys = this.normalize(keyname)
-      for (var i = 0; i < keys.length; i++) {
-        var name = keys.slice(0, i + 1).join(" ")
-        var val = i == keys.length - 1 ? value : "..."
-        var prev = this.bindings[name]
-        if (!prev) this.bindings[name] = val
-        else if (prev != val) throw new Error("Inconsistent bindings for " + name)
-      }
-    },
-
-    // :: (Object<any>)
-    // Add all the bindings in the given object to the keymap.
-    addBindings: function(bindings) {
-      for (var keyname in bindings) if (Object.prototype.hasOwnProperty.call(bindings, keyname))
-        this.addBinding(keyname, bindings[keyname])
-    },
-
-    // :: (string)
-    // Remove the binding for the given key or key sequence.
-    removeBinding: function(keyname) {
-      var keys = this.normalize(keyname)
-      for (var i = keys.length - 1; i >= 0; i--) {
-        var name = keys.slice(0, i).join(" ")
-        var val = this.bindings[name]
-        if (val == "..." && !this.unusedMulti(name))
-          break
-        else if (val)
-          delete this.bindings[name]
-      }
-    },
-
-    unusedMulti: function(name) {
-      for (var binding in this.bindings)
-        if (binding.length > name && binding.indexOf(name) == 0 && binding.charAt(name.length) == " ")
-          return false
-      return true
-    },
-
-    // :: (string, ?any) → any
-    // Looks up the given key or key sequence in this keymap. Returns
-    // the value the key is bound to (which may be undefined if it is
-    // not bound), or the string `"..."` if the key is a prefix of a
-    // multi-key sequence that is bound by this keymap.
-    lookup: function(key, context) {
-      return this.options.call ? this.options.call(key, context) : this.bindings[key]
-    },
-
-    // :: (any) → ?string
-    reverseLookup: function(value) {
-      for (var keyname in this.bindings)
-        if (this.bindings[keyname] == value) return keyname
-    },
-
-    constructor: Keymap
+  function unusedMulti(bindings, name) {
+    for (var binding in bindings)
+      if (binding.length > name && binding.indexOf(name) == 0 && binding.charAt(name.length) == " ")
+        return false
+    return true
   }
+
+  function updateBindings(bindings, base) {
+    var result = {}
+    if (base) for (var prop in base) if (hasProp(base, prop)) result[prop] = base[prop]
+
+    for (var keyname in bindings) if (hasProp(bindings, keyname)) {
+      var keys = keyname.split(/ +(?!\'$)/).map(normalizeKeyName)
+      var value = bindings[keyname]
+      if (value == null) {
+        for (var i = keys.length - 1; i >= 0; i--) {
+          var name = keys.slice(0, i).join(" ")
+          var old = result[name]
+          if (old == Keymap.unfinished && !unusedMulti(result, name))
+            break
+          else if (old)
+            delete result[name]
+        }
+      } else {
+        for (var i = 0; i < keys.length; i++) {
+          var name = keys.slice(0, i + 1).join(" ")
+          var val = i == keys.length - 1 ? value : Keymap.unfinished
+          var prev = result[name]
+          if (prev && (i < keys.length - 1 || prev == Keymap.unfinished) && prev != val)
+            throw new Error("Inconsistent bindings for " + name)
+          result[name] = val
+        }
+      }
+    }
+    return result
+  }
+
+  // :: (Object<T>) → Keymap<T>
+  // A keymap binds a set of [key names](#keyName) to values.
+  //
+  // Construct a keymap using the given bindings, which should be an
+  // object whose property names are [key names](#keyName) or
+  // space-separated sequences of key names. In the second case, the
+  // binding will be for a multi-stroke key combination.
+  function Keymap(bindings, base) {
+    this.bindings = updateBindings(bindings, base)
+  }
+
+  // :: (Object<?T>) → Keymap
+  // Create a new keymap by adding bindings from the given object,
+  // and removing the bindings that the object maps to null.
+  Keymap.prototype.update = function(bindings) {
+    return new Keymap(bindings, this.bindings)
+  }
+
+  // :: (string) → T
+  // Looks up the given key or key sequence in this keymap. Returns
+  // the value the key is bound to (which may be undefined if it is
+  // not bound), or the value `Keymap.unfinished` if the key is a prefix of a
+  // multi-key sequence that is bound by this keymap.
+  Keymap.prototype.lookup = function(key) {
+    return this.bindings[key]
+  }
+
+  Keymap.unfinished = {toString: function() { return "Keymap.unfinished" }}
 
   Keymap.keyName = keyName
   Keymap.isModifierKey = isModifierKey
   Keymap.normalizeKeyName = normalizeKeyName
+
+  function ComputedKeymap(f) { this.f = f }
+  ComputedKeymap.prototype.lookup = function(key, context) { return this.f(key, context) }
+  // :: ((key: string, context: ?any) → T) → ComputedKeymap<T>
+  // Construct a 'computed' keymap from a function which takes a key
+  // name and returns a binding.
+  Keymap.Computed = ComputedKeymap
 
   return Keymap
 })

@@ -13,17 +13,18 @@ things:
    browsers do not attach modifier information to `keypress` events.
 
  * `keydown` events are represented as zero or more modifiers
-   (`Shift-`, `Cmd-`, `Alt-`, `Ctrl-`, in that order) followed by a
-   key name.
+   (`Shift-`, `Cmd-`, `Alt-`, `Ctrl-`) followed by a key name.
 
- * A key name is a capital letter for a letter key, `F` plus a number
-   for a function key, the symbol typed by the key when shift isn't
-   held down (one of ``[\]`'*,-./;=``), or one of the names `Alt`,
-   `Backspace`, `CapsLock`, `Ctrl`, `Delete`, `Down`, `End`, `Enter`,
-   `Esc`, `Home`, `Insert`, `Left`, `Mod`, `PageDown`, `PageUp`,
-   `Pause`, `PrintScrn`, `Right`, `Shift`, `Space`, `Tab`, or `Up`.
+ * A key name is a capital letter for a letter key, a digit for a
+   number key, `F` plus a number for a function key, the symbol typed
+   by the key when shift isn't held down (one of ``[\]`'*,-./;=``), or
+   one of the names `Alt`, `Backspace`, `CapsLock`, `Ctrl`, `Delete`,
+   `Down`, `End`, `Enter`, `Esc`, `Home`, `Insert`, `Left`, `Mod`,
+   `PageDown`, `PageUp`, `Pause`, `PrintScrn`, `Right`, `Shift`,
+   `Space`, `Tab`, or `Up`.
 
-You can get a key name from an event by calling `Keymap.keyName(event)`.
+You can get a key name from an event by calling
+`Keymap.keyName(event)`.
 
 You can normalize a key name string (fixing the order of the
 modifiers, and replacing alternative modifier names with their
@@ -52,30 +53,23 @@ to look up a key:
     myMap.lookup("Ctrl-Q") // → handleQuit
     myMap.lookup("Alt-F4") // → undefined
 
-You can add and remove bindings on an existing keymap.
+You can create a new map from an existing map with its `update`
+method:
 
-    myMap.addBinding("Alt-F4", handleQuit)
-    myMap.addBindings({"Enter": something, "Esc": something})
-    myMap.removeBinding("Shift-Space")
+    var newMap = myMap.update({
+      "Alt-F4": handleQuit,
+      "Ctrl-Q": null
+    })
 
-So far, this doesn't do anything that a JavaScript object couldn't do.
-The constructor accepts a second argument, which is an options object.
-These options are supported:
+That will create a new map, starting with the bindings in `myMap`,
+adding a binding for `Alt-F4`, and removing the binding for `Ctrl-Q`.
 
-  * **`multi`**: Boolean, defaults to true. Toggles support
-    multi-stroke key bindings. Binding names may be space-separated
-    strings containing multiple key names. The keymap will track which
-    prefixes are part of a multi-stroke binding, and when such a
-    prefix is looked up, it will return `"..."`, to indicate to client
-    code that it should buffer the key name, and, on the next
-    non-modifier key event, try looking up that key name suffixed by
-    the next key name (separated by a space).
-
-  * **`call`**: Function, defaults to null. When given, it makes this
-    keymap a programmatic keymap, meaning the bindings are ignored and
-    the function that is the value of the `call` option will be
-    called, with the key name, when a key is looked up, and its return
-    value returned.
+Multi-stroke keys are supported by providing space-separated names to
+a keymap. When a prefix of a multi-stroke key is looked up, the
+`lookup` method will return `Keymap.unfinished`. The handler should
+then buffer the key name, and on the next key event (possibly with a
+timeout to clear buffered keys), try again by prefixing the new key
+event's name with the buffered key(s).
 
 ## License
 
