@@ -108,7 +108,7 @@
       var value = bindings[keyname]
       if (value == null) {
         for (var i = keys.length - 1; i >= 0; i--) {
-          var name = keys.slice(0, i).join(" ")
+          var name = keys.slice(0, i + 1).join(" ")
           var old = result[name]
           if (old == Keymap.unfinished && !unusedMulti(result, name))
             break
