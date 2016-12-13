@@ -1,6 +1,8 @@
 (function(mod) {
-  if (typeof exports == "object" && typeof module == "object") // CommonJS
+  if (typeof exports == "object" && typeof module == "object") { // CommonJS
     module.exports = mod()
+    module.exports.default = module.exports // ES6 modules compatibility
+  }
   else if (typeof define == "function" && define.amd) // AMD
     return define([], mod)
   else // Plain browser env
