@@ -1,6 +1,6 @@
 {
   "name": "browserkeymap",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Map browser events to key names, and key names to values",
   "main": "index.js",
   "repository": {
